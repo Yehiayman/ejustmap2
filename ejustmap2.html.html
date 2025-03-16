@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campus Directory</title>  
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        #map-container {
+            position: relative;
+            width: 500px;
+            height: 800px;
+            margin: auto;
+            background: url('file:///C:/Users/lujay/OneDrive/Desktop/ejustproject/ejustmap.png') no-repeat center;
+            background-size: cover;
+        }
+        .marker {
+            position: absolute;
+            width: 25px;
+            height: 25px;
+            background: red;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .popup {
+            display: none;
+            position: absolute;
+            background: white;
+            padding: 5px;
+            border: 1px solid black;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 5px;
+            white-space: nowrap;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+            transform: translate(-50%, -130%);
+        }
+        /* "You Are Here" marker */
+        .you-are-here-marker {
+            position: absolute;
+            width: 25px;
+            height: 25px;
+            background: blue;
+            border-radius: 50%;
+            border: 3px solid white;
+        }
+        .you-are-here-label {
+            position: absolute;
+            top: -30px;
+            left: -30px;
+            background: black;
+            color: white;
+            padding: 5px 8px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 5px;
+            border: 1px solid blue;
+            white-space: nowrap;
+        }
+        /* Styling for SVG lines */
+        svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        .nav-line {
+            stroke: grey;
+            stroke-width: 5;
+            fill: none;
+            transition: stroke 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <h2>Campus Directory</h2>
+    <input type="text" id="search-bar" placeholder="Search for a location..." onkeyup="searchLocation()">
+    <div id="map-container">
+        <!-- Navigation Lines -->
+        <svg id="nav-lines">
+            <line id="library-line-1" class="nav-line" x1="238" y1="720" x2="238" y2="580"></line>
+            <line id="library-line-2" class="nav-line" x1="238" y1="580" x2="270" y2="580"></line>
+            <line id="library-line-3" class="nav-line" x1="270" y1="580" x2="270" y2="500"></line>
+            <line id="library-line-4" class="nav-line" x1="270" y1="500" x2="250" y2="500"></line>
+            <line id="cafeteria-line-1" class="nav-line" x1="250" y1="500" x2="250" y2="400"></line>
+            <line id="SA-1" class="nav-line" x1="270" y1="500" x2="317" y2="500"></line>
+            <line id="B18-1" class="nav-line" x1="270" y1="495" x2="344" y2="495"></line>
+            <line id="B17-1" class="nav-line" x1="270" y1="505" x2="348" y2="505"></line>
+            <line id="B17-2" class="nav-line" x1="348" y1="505" x2="348" y2="570"></line>
+            <line id="B17-3" class="nav-line" x1="348" y1="570" x2="390" y2="570"></line>
+            <line id="B21-1" class="nav-line" x1="344" y1="500" x2="344" y2="310"></line>
+            <line id="B21-2" class="nav-line" x1="344" y1="310" x2="400" y2="310"></line>
+            <line id="B20-1" class="nav-line" x1="344" y1="310" x2="300" y2="310"></line>
+            <line id="B18-2" class="nav-line" x1="347" y1="495" x2="390" y2="495"></line>
+            <line id="B18-3" class="nav-line" x1="390" y1="495" x2="390" y2="480"></line>
+            <line id="B19-1" class="nav-line" x1="349" y1="500" x2="349" y2="400"></line>
+            <line id="B19-2" class="nav-line" x1="347" y1="400" x2="390" y2="400"></line>
+            <line id="COE-1" class="nav-line" x1="238" y1="580" x2="238" y2="512"></line>
+            <line id="COE-2" class="nav-line" x1="238" y1="512" x2="200" y2="512"></line>
+            <line id="COE-3" class="nav-line" x1="200" y1="512" x2="200" y2="560"></line>
+            <line id="B8-1" class="nav-line" x1="238" y1="504" x2="200" y2="504"></line>
+            <line id="B8-2" class="nav-line" x1="200" y1="504" x2="200" y2="480"></line>
+            <line id="B25-1" class="nav-line" x1="238" y1="509" x2="130" y2="509"></line>
+            <line id="B25-2" class="nav-line" x1="130" y1="509" x2="130" y2="490"></line>
+            <line id="B26-1" class="nav-line" x1="130" y1="509" x2="130" y2="550"></line>
+            <line id="B22-1" class="nav-line" x1="190" y1="480" x2="164" y2="480"></line>
+            <line id="B22-2" class="nav-line" x1="164" y1="480" x2="164" y2="320"></line>
+            <line id="B22-3" class="nav-line" x1="164" y1="320" x2="190" y2="320"></line>
+            <line id="B23-1" class="nav-line" x1="164" y1="320" x2="130" y2="320"></line>
+            <line id="B24-1" class="nav-line" x1="160" y1="480" x2="160" y2="420"></line>
+            <line id="B24-2" class="nav-line" x1="160" y1="420" x2="130" y2="420"></line>
+            
+            
+            
+            
+
+
+        </svg>
+
+        <!-- Building Markers -->
+        <div class="marker" id="Library" style="top: 480px; left: 242px;" onclick="showPopup(this, 'Library')"></div>
+        <div class="marker" id="Cafeteria" style="top: 380px; left: 242px;" onclick="showPopup(this, 'Cafeteria')"></div>
+        <div class="marker" id="B21" style="top: 300px; left: 300px;" onclick="showPopup(this, 'B21')"></div>
+        <div class="marker" id="B20" style="top: 300px; left: 377px;" onclick="showPopup(this, 'B20')"></div>
+        <div class="marker" id="B19" style="top: 385px; left: 377px;" onclick="showPopup(this, 'B19')"></div>
+        <div class="marker" id="B18" style="top: 460px; left: 377px;" onclick="showPopup(this, 'B18')"></div>
+        <div class="marker" id="B17" style="top: 550px; left: 377px;" onclick="showPopup(this, 'B17')"></div>
+        <div class="marker" id="B22" style="top: 300px; left: 186px;" onclick="showPopup(this, 'B22')"></div>
+        <div class="marker" id="B24" style="top: 400px; left: 117px;" onclick="showPopup(this, 'B24')"></div>
+        <div class="marker" id="B23" style="top: 300px; left: 117px;" onclick="showPopup(this, 'B23')"></div>
+        <div class="marker" id="B25" style="top: 470px; left: 117px;" onclick="showPopup(this, 'B25')"></div>
+        <div class="marker" id="B26" style="top: 550px; left: 117px;" onclick="showPopup(this, 'B26')"></div>
+        <div class="marker" id="COE" style="top: 550px; left: 186px;" onclick="showPopup(this, 'COE')"></div>
+        <div class="marker" id="B8" style="top: 470px; left: 186px;" onclick="showPopup(this, 'B8')"></div>
+        <div class="marker" id="Student affairs" style="top: 470px; left: 300px;" onclick="showPopup(this, 'Student affairs')"></div>
+        
+        <!-- "You Are Here" marker -->
+        <div id="you-are-here" style="position: absolute; top: 720px; left: 242px;">
+            <div class="you-are-here-marker"></div>
+            <span class="you-are-here-label">You Are Here</span>
+        </div>
+
+        <div id="popup" class="popup"></div>
+    </div>
+    
+    <script>
+        function searchLocation() {
+    let query = document.getElementById("search-bar").value.toLowerCase();
+    let locations = { 
+        "Library": "Library", 
+        "Cafeteria": "Cafeteria", 
+        "B21": "B21", 
+        "B20": "B20",
+        "B19": "B19",
+        "B18": "B18",
+        "B17": "B17",
+        "B22": "B22",
+        "B24": "B24",
+        "B23": "B23",
+        "B25": "B25",
+        "B26": "B26",
+        "COE": "COE",
+        "B8": "B8",
+        "Student affairs": "Student Affairs"
+    };
+
+    let found = false;
+    let popup = document.getElementById("popup");
+
+    for (let id in locations) {
+        let marker = document.getElementById(id);
+        if (locations[id].toLowerCase().includes(query) && query !== "") {
+            marker.style.background = "blue"; 
+            showPopup(marker, locations[id]); // Show the popup when found
+            highlightPath(id);
+            found = true;
+        } else {
+            marker.style.background = "red"; 
+        }
+    }
+
+    if (!found || query === "") {
+        resetPaths();
+        popup.style.display = "none"; // Hide the popup if no match or search is cleared
+    }
+}
+
+
+        function highlightPath(destination) {
+            resetPaths(); 
+
+            if (destination === "Library") {
+                document.getElementById("library-line-1").style.stroke = "blue";
+                document.getElementById("library-line-2").style.stroke = "blue";
+                document.getElementById("library-line-3").style.stroke = "blue";
+                document.getElementById("library-line-4").style.stroke = "blue";
+            }
+
+            if (destination === "Cafeteria") { 
+                document.getElementById("cafeteria-line-1").style.stroke = "blue";
+                document.getElementById("library-line-1").style.stroke = "blue";
+                document.getElementById("library-line-2").style.stroke = "blue";
+                document.getElementById("library-line-3").style.stroke = "blue";
+                document.getElementById("library-line-4").style.stroke = "blue";
+        
+             }
+
+             if (destination === "Student affairs") { 
+                document.getElementById("SA-1").style.stroke = "blue";
+                document.getElementById("library-line-1").style.stroke = "blue";
+                document.getElementById("library-line-2").style.stroke = "blue";
+                document.getElementById("library-line-3").style.stroke = "blue";
+             }
+
+             if (destination === "B17") { 
+                document.getElementById("B17-1").style.stroke = "blue";
+                document.getElementById("B17-2").style.stroke = "blue";
+                document.getElementById("B17-3").style.stroke = "blue";
+                document.getElementById("library-line-1").style.stroke = "blue";
+                document.getElementById("library-line-2").style.stroke = "blue";
+                document.getElementById("library-line-3").style.stroke = "blue";
+             }
+
+             if (destination === "B21") { 
+                document.getElementById("B18-1").style.stroke = "blue";
+                document.getElementById("B21-1").style.stroke = "blue";
+                document.getElementById("B20-1").style.stroke = "blue";
+                document.getElementById("library-line-1").style.stroke = "blue";
+                document.getElementById("library-line-2").style.stroke = "blue";
+                document.getElementById("library-line-3").style.stroke = "blue";
+             }
+             if (destination === "B20") { 
+                document.getElementById("B18-1").style.stroke = "blue";
+                document.getElementById("B21-2").style.stroke = "blue";
+                document.getElementById("B21-1").style.stroke = "blue";
+                document.getElementById("library-line-1").style.stroke = "blue";
+                document.getElementById("library-line-2").style.stroke = "blue";
+                document.getElementById("library-line-3").style.stroke = "blue";
+             }
+             if (destination === "B18") { 
+                document.getElementById("B18-1").style.stroke = "blue";
+                document.getElementById("B18-2").style.stroke = "blue";
+                document.getElementById("B18-3").style.stroke = "blue";
+                document.getElementById("library-line-1").style.stroke = "blue";
+                document.getElementById("library-line-2").style.stroke = "blue";
+                document.getElementById("library-line-3").style.stroke = "blue";
+             }
+             if (destination === "B19") { 
+                document.getElementById("B18-1").style.stroke = "blue";
+                document.getElementById("B19-2").style.stroke = "blue";
+                document.getElementById("B19-1").style.stroke = "blue";
+                document.getElementById("library-line-1").style.stroke = "blue";
+                document.getElementById("library-line-2").style.stroke = "blue";
+                document.getElementById("library-line-3").style.stroke = "blue";
+             }
+             if (destination === "COE") { 
+                document.getElementById("COE-1").style.stroke = "blue";
+                document.getElementById("COE-2").style.stroke = "blue";
+                document.getElementById("COE-3").style.stroke = "blue";
+                document.getElementById("library-line-1").style.stroke = "blue";
+    
+             }
+             if (destination === "B8") { 
+                document.getElementById("COE-1").style.stroke = "blue";
+                document.getElementById("B8-1").style.stroke = "blue";
+                document.getElementById("B8-2").style.stroke = "blue";
+                document.getElementById("library-line-1").style.stroke = "blue";
+    
+             }
+            
+             if (destination === "B25") { 
+                document.getElementById("COE-1").style.stroke = "blue";
+                document.getElementById("B25-1").style.stroke = "blue";
+                document.getElementById("B25-2").style.stroke = "blue";
+                document.getElementById("library-line-1").style.stroke = "blue";
+             }
+
+             if (destination === "B26") { 
+                document.getElementById("COE-1").style.stroke = "blue";
+                document.getElementById("B25-1").style.stroke = "blue";
+                document.getElementById("B26-1").style.stroke = "blue";
+                document.getElementById("library-line-1").style.stroke = "blue";
+             }
+
+             if (destination === "B22") { 
+                document.getElementById("COE-1").style.stroke = "blue";
+                document.getElementById("B8-1").style.stroke = "blue";
+                document.getElementById("B8-2").style.stroke = "blue";
+                document.getElementById("B22-1").style.stroke = "blue";
+                document.getElementById("B22-2").style.stroke = "blue";
+                document.getElementById("B22-3").style.stroke = "blue";
+                document.getElementById("library-line-1").style.stroke = "blue";
+    
+             }
+
+             if (destination === "B23") { 
+                document.getElementById("COE-1").style.stroke = "blue";
+                document.getElementById("B8-1").style.stroke = "blue";
+                document.getElementById("B8-2").style.stroke = "blue";
+                document.getElementById("B22-1").style.stroke = "blue";
+                document.getElementById("B22-2").style.stroke = "blue";
+                document.getElementById("B23-1").style.stroke = "blue";
+                document.getElementById("library-line-1").style.stroke = "blue";
+             }
+             if (destination === "B24") { 
+                document.getElementById("COE-1").style.stroke = "blue";
+                document.getElementById("B8-1").style.stroke = "blue";
+                document.getElementById("B8-2").style.stroke = "blue";
+                document.getElementById("B22-1").style.stroke = "blue";
+                document.getElementById("B24-1").style.stroke = "blue";
+                document.getElementById("B24-2").style.stroke = "blue";
+                document.getElementById("library-line-1").style.stroke = "blue";
+             }
+
+             
+
+            
+
+}
+        
+
+        function resetPaths() {
+            document.querySelectorAll(".nav-line").forEach(line => {
+                line.style.stroke = "grey";
+            });
+        }
+
+        function showPopup(marker, name) {
+            let popup = document.getElementById("popup");
+            popup.style.display = "block";
+
+            // Get marker position inside the map-container
+            let markerRect = marker.getBoundingClientRect();
+            let mapRect = document.getElementById("map-container").getBoundingClientRect();
+
+            // Position popup above the marker
+            popup.style.top = (markerRect.top - mapRect.top - 10) + "px";
+            popup.style.left = (markerRect.left - mapRect.left + 15) + "px";
+
+            popup.innerHTML = `<b>${name}</b>`;
+
+            highlightPath(name);
+        }
+
+        document.addEventListener("click", function(event) {
+            let popup = document.getElementById("popup");
+            if (!event.target.classList.contains("marker")) {
+                popup.style.display = "none";
+                resetPaths();
+            }
+        });
+    </script>
+</body>
+</html>
+
+
